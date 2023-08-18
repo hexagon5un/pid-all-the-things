@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <title></title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="reveal.js/css/reveal.css">
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="reveal.js/css/theme/black.css" id="theme">
+  <!-- Printing and PDF exports -->
+  <script>
+    var link = document.createElement( 'link' );
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = window.location.search.match( /print-pdf/gi ) ? 'reveal.js/css/print/pdf.css' : 'reveal.js/css/print/paper.css';
+    document.getElementsByTagName( 'head' )[0].appendChild( link );
+  </script>
+  <!--[if lt IE 9]>
+  <script src="reveal.js/lib/js/html5shiv.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+
+<section><section id="pid-control-all-the-things" class="titleslide slide level1"><h1>PID Control All the Things</h1></section></section>
+<section><section id="why-pid" class="titleslide slide level1"><h1>Why PID?</h1></section><section id="proportional-integral-derivative" class="slide level2">
+<h2>Proportional, Integral, Derivative</h2>
+<ul>
+<li class="fragment"><p>Runs everything: quadcopters to chemical plants</p></li>
+<li class="fragment"><p>Time-tested (nothing new here!)</p></li>
+<li class="fragment"><p>Simple algorithm, easy math</p></li>
+<li class="fragment"><p>Tuning is Black Magic?</p></li>
+</ul>
+</section><section id="all-about-control" class="slide level2">
+<h2>All About Control</h2>
+<ul>
+<li class="fragment"><p>Plant: Quad, Self-Balancing Scooter, Coffee Roaster, Hot End</p></li>
+<li class="fragment"><p>Process Variable: hover height, balance, roast rate, temperature</p></li>
+<li class="fragment"><p>Setpoint and Error</p></li>
+<li class="fragment"><p>Error = 0 as fast as possible</p></li>
+</ul>
+</section><section id="concrete-example-monocopter" class="slide level2">
+<h2>Concrete Example: Monocopter</h2>
+<ul>
+<li class="fragment"><p><a href="https://hackaday.com/2016/11/08/helicopter-pendulum-is-pid-licious/">Ripped off of Clovis Fritzen</a></p></li>
+<li class="fragment"><p>Motor and propeller on the end of a stick</p></li>
+<li class="fragment"><p>Potentiometer on the axis, hot glue</p></li>
+<li class="fragment"><p>ESP8266 ADC, Micropython</p></li>
+<li class="fragment"><p>Safety Popsicle Stick, Mark II</p></li>
+</ul>
+</section><section id="my-plant-the-monocopter" class="slide level2">
+<h2>My Plant the Monocopter</h2>
+<ul>
+<li class="fragment"><p>Process Variable: ADC, stand-in for the height</p></li>
+<li class="fragment"><p>Control Variable: PWM percent for motor driver</p></li>
+<li class="fragment"><p>Control Function: read in ADC, output throttle</p></li>
+<li class="fragment"><p>Non-linearities abound!</p></li>
+<li class="fragment"><p>Also non-equilibrium system: gravity</p></li>
+</ul>
+</section><section id="proportional-integral-derivative-1" class="slide level2">
+<h2>Proportional, Integral, Derivative</h2>
+<ul>
+<li class="fragment"><p>Error: ADC - setpoint</p></li>
+<li class="fragment"><p>Output = P + I + D</p></li>
+<li class="fragment"><p>Proportional: KP * error</p></li>
+<li class="fragment"><p>Integral: KI * sum of past errors * timestep</p></li>
+<li class="fragment"><p>Derivative: KD * (this error - last error) / timestep</p></li>
+</ul>
+</section><section id="calculus-no-thanks." class="slide level2">
+<h2>Calculus? No Thanks.</h2>
+<ul>
+<li class="fragment"><p>Textbooks and continuous time</p></li>
+<li class="fragment"><p>Reality is sampled anyway: discrete time</p></li>
+<li class="fragment"><p>Sample at regular intervals, and you don’t have to worry</p></li>
+<li class="fragment"><p>Multiplications, cumulative addition, and a subtract</p></li>
+</ul>
+</section></section>
+<section><section id="lets-go" class="titleslide slide level1"><h1>Let’s Go!</h1></section></section>
+<section><section id="tuning-tips" class="titleslide slide level1"><h1>Tuning Tips</h1></section><section id="handwavy-procedure" class="slide level2">
+<h2>Handwavy Procedure</h2>
+<ul>
+<li class="fragment"><p>Start with all zeroed</p></li>
+<li class="fragment"><p>Increase KP until you get “reasonable” response</p></li>
+<li class="fragment"><p>Increase KI until it hits steady state</p></li>
+<li class="fragment"><p>At this point, could be oscillating when preturbed</p></li>
+<li class="fragment"><p>Increase KD until it’s stable</p></li>
+<li class="fragment"><p>Iterate</p></li>
+</ul>
+</section><section id="time-step" class="slide level2">
+<h2>Time Step</h2>
+<ul>
+<li class="fragment"><p>Sample regularly</p></li>
+<li class="fragment"><p>Sample often. But not too often.</p></li>
+<li class="fragment"><p>Know your timescale, sample 10x-100x faster?</p></li>
+</ul>
+</section><section id="the-d-term" class="slide level2">
+<h2>The D Term</h2>
+<ul>
+<li class="fragment"><p>Depends on timescale (dx/dt)</p></li>
+<li class="fragment"><p>Measurement with noise:\ high frequency / low frequency</p></li>
+<li class="fragment"><p>Limiting factor</p></li>
+</ul>
+</section><section id="automatic-methods" class="slide level2">
+<h2>Automatic Methods</h2>
+<ul>
+<li class="fragment"><p><a href="https://en.wikipedia.org/wiki/Proportional%E2%80%93integral%E2%80%93derivative_controller#Ziegler%E2%80%93Nichols_method">Ziegler–Nichols</a>: the classic. Pick KP, time oscillations.</p></li>
+<li class="fragment"><p>ZN is easy, but also aggressive / brittle</p></li>
+<li class="fragment"><p>Software solutions: if you have special needs</p></li>
+<li class="fragment"><p>Perturb +/-, watch response, optimize for what you care about</p></li>
+</ul>
+</section><section id="lag-the-killer" class="slide level2">
+<h2>Lag, the Killer</h2>
+<ul>
+<li class="fragment"><p>Inertia in the plant</p></li>
+<li class="fragment"><p>Heavy motor, pushing air</p></li>
+<li class="fragment"><p>Limits timestep, D term</p></li>
+</ul>
+</section><section id="standard-form" class="slide level2">
+<h2>Standard Form</h2>
+<ul>
+<li class="fragment"><p>Take out a common factor of KP</p></li>
+<li class="fragment"><p>KP (1 + TI * Sum(errors) * dt + TD * (error difference)/dt)</p></li>
+<li class="fragment"><p>dt / TI is how many samples before re-centers</p></li>
+<li class="fragment"><p>TD / dt is damping time</p></li>
+<li class="fragment"><p>KI = KP / TI</p></li>
+<li class="fragment"><p>KD = KP * TD</p></li>
+</ul>
+</section><section id="loops-within-loops" class="slide level2">
+<h2>Loops Within Loops</h2>
+<ul>
+<li class="fragment"><p>Self-balancer: balance control, angle control</p></li>
+<li class="fragment"><p>Quad: attitude control, GPS routing</p></li>
+<li class="fragment"><p>Important that outer loop runs slower (10x?) so that inner loop can react</p></li>
+</ul>
+</section></section>
+<section><section id="what-could-go-wrong" class="titleslide slide level1"><h1>What Could Go Wrong?</h1></section><section id="pid-works-best-around-equilibrium" class="slide level2">
+<h2>PID Works Best Around Equilibrium</h2>
+<ul>
+<li class="fragment"><p>The plant responds differently at different setpoints</p></li>
+<li class="fragment"><p>PID is tailored for linear systems</p></li>
+<li class="fragment"><p>I term can get you there, P term can keep you there</p></li>
+<li class="fragment"><p>But what happens when out of equilibrium?</p></li>
+</ul>
+</section><section id="integral-windup" class="slide level2">
+<h2>Integral Windup</h2>
+<ul>
+<li class="fragment"><p>Accumulating errors can get out of hand</p></li>
+<li class="fragment"><p>Integral term is just the constant offset</p></li>
+<li class="fragment"><p>Limit to plausible range (max, min)</p></li>
+<li class="fragment"><p>Detect special situations and turn off accumulation</p></li>
+</ul>
+</section><section id="output-range" class="slide level2">
+<h2>Output Range</h2>
+<ul>
+<li class="fragment"><p>Nothing limits the control range to (0%, 100%)</p></li>
+<li class="fragment"><p>You might want to do so</p></li>
+</ul>
+</section><section id="derivative-kick-change-in-setpoint" class="slide level2">
+<h2>Derivative Kick: Change in Setpoint</h2>
+<ul>
+<li class="fragment"><p>Externally change the setpoint</p></li>
+<li class="fragment"><p>Spike in the derivative</p></li>
+<li class="fragment"><p>Best solution is “derivative on measurement”</p></li>
+<li class="fragment"><p>Change error = change setpoint - change measured value</p></li>
+<li class="fragment"><p>Use negative change in process value instead of error</p></li>
+</ul>
+</section><section id="tweaking-parameters-live" class="slide level2">
+<h2>Tweaking Parameters Live</h2>
+<ul>
+<li class="fragment"><p>If you need to change KP or KD, no problem</p></li>
+<li class="fragment"><p>If you change KI, multiplies old values by new constant</p></li>
+<li class="fragment"><p>Solution: change errors sum proportionally</p></li>
+<li class="fragment"><p>If you increase KI by 50%, decrease error sum by 50%</p></li>
+</ul>
+</section></section>
+<section><section id="conclusion" class="titleslide slide level1"><h1>Conclusion</h1></section><section id="pid-is-hard" class="slide level2">
+<h2>PID is Hard</h2>
+<ul>
+<li class="fragment"><p>All this tuning</p></li>
+<li class="fragment"><p>Need to know your plant</p></li>
+<li class="fragment"><p>As fast as possible, as little oscillation, robust to disturbance</p></li>
+<li class="fragment"><p>There is no <em>solution</em> because it’s not a well-defined problem</p></li>
+<li class="fragment"><p>When it goes wrong, can break things</p></li>
+</ul>
+</section><section id="pid-is-easy" class="slide level2">
+<h2>PID is Easy</h2>
+<ul>
+<li class="fragment"><p>P fights deviations around equilibrium</p></li>
+<li class="fragment"><p>I gets equilibrium into the right place</p></li>
+<li class="fragment"><p>D damps down oscillations, lets you increase P &amp; I</p></li>
+</ul>
+</section><section id="read-more-hackaday" class="slide level2">
+<h2>Read More Hackaday!</h2>
+<figure>
+<img src="images/skull_n_wrenches5_nobg.png" height="400" />
+</figure>
+</section></section>
+    </div>
+  </div>
+
+  <script src="reveal.js/lib/js/head.min.js"></script>
+  <script src="reveal.js/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+
+        // Optional reveal.js plugins
+        dependencies: [
+          { src: 'reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: 'reveal.js/plugin/zoom-js/zoom.js', async: true },
+              { src: 'reveal.js/plugin/notes/notes.js', async: true }
+        ]
+      });
+    </script>
+    </body>
+</html>
